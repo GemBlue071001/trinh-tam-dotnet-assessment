@@ -14,7 +14,6 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Email).HasColumnName("email").HasColumnType("citext").HasMaxLength(254).IsRequired();
         builder.HasIndex(x => x.Email).IsUnique();
         builder.Property(x => x.PasswordHash).HasColumnName("password_hash").IsRequired();
-        builder.Property(x => x.PasswordSalt).HasColumnName("password_salt").IsRequired();
         builder.Property(x => x.Role).HasColumnName("role").HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true).IsRequired();
         builder.Property(x => x.FullName).HasColumnName("full_name").HasMaxLength(150);

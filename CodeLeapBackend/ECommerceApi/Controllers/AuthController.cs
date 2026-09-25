@@ -9,11 +9,18 @@ namespace ECommerceApi.Controllers;
 public sealed class AuthController(IAuthService authService) : ControllerBase
 {
     [HttpPost("register")]
-    [ProducesResponseType(StatusCodes.Status501NotImplemented)]
+    [ProducesResponseType<RegisterResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register(RegisterRequest registerRequest)
     {
-        await authService.Register(registerRequest);
+        var response = await authService.Register(registerRequest);
 
-        return StatusCode(StatusCodes.Status501NotImplemented);
+        if (response is null)
+        {
+            return Conflict(new { message = "Email is already registered." });
+        }
+
+        return StatusCode(StatusCodes.Status201Created, response);
     }
 }

@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -68,20 +67,11 @@ public static class ECommerceDbInitializer
 
     private static User CreateAdmin(DateTimeOffset now)
     {
-        var salt = RandomNumberGenerator.GetBytes(16);
-        var passwordHash = Rfc2898DeriveBytes.Pbkdf2(
-            password: "Admin@123",
-            salt: salt,
-            iterations: 100_000,
-            hashAlgorithm: HashAlgorithmName.SHA256,
-            outputLength: 32);
-
         return new User
         {
             Id = Guid.NewGuid(),
             Email = "admin@codeleap.local",
-            PasswordSalt = Convert.ToBase64String(salt),
-            PasswordHash = Convert.ToBase64String(passwordHash),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
             Role = UserRole.Admin,
             IsActive = true,
             FullName = "System Admin",

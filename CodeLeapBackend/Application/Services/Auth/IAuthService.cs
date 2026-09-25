@@ -4,5 +4,5 @@ namespace Application.Services.Auth;
 
 public interface IAuthService
 {
-    public Task Register(RegisterRequest registerRequest);
+    Task<RegisterResponse?> Register(RegisterRequest registerRequest);
 }
