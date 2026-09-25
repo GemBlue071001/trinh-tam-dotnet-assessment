@@ -12,7 +12,7 @@ public static class ECommerceDbInitializer
         using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ECommerceDbContext>();
 
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.MigrateAsync();
 
         var now = DateTimeOffset.UtcNow;
 
