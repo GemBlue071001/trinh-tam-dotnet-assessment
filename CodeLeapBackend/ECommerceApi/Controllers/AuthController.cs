@@ -10,9 +10,9 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
 {
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status501NotImplemented)]
-    public async Task<IActionResult> Register(RegisterRequest registerRequest, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register(RegisterRequest registerRequest)
     {
-        await authService.Register(registerRequest, cancellationToken);
+        await authService.Register(registerRequest);
 
         return StatusCode(StatusCodes.Status501NotImplemented);
     }
