@@ -23,4 +23,17 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
 
         return StatusCode(StatusCodes.Status201Created, response);
     }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginRequest loginRequest)
+    {
+        var response = await authService.Login(loginRequest);
+
+        if (response is null)
+        {
+            return BadRequest(new { message = "Email or password is incorrect" });
+        }
+
+        return Ok(response);
+    }
 }

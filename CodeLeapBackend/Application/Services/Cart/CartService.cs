@@ -1,0 +1,84 @@
+using Application.Models.Cart;
+using Application.Mappers;
+using Application.Repositories;
+using Domain.Entities;
+using Domain.Enums;
+using CartEntity = Domain.Entities.Cart;
+
+namespace Application.Services.Cart;
+
+public sealed class CartService(
+    ICartRepository cartRepository,
+    IGenericRepository<Product> productRepository) : ICartService
+{
+    public async Task<CartResponse> GetCart(Guid userId)
+    {
+        var cart = await cartRepository.GetActiveByUserId(userId);
+        return cart is null ? new CartResponse() : CartMapper.Map(cart);
+    }
+
+    public async Task<CartOperationResult> AddItem(Guid userId, AddCartItemRequest request)
+    {
+        var product = await productRepository.GetBy(product =>
+            product.Id == request.ProductId && !product.IsDeleted);
+        if (product is null)
+        {
+            return new CartOperationResult { Status = CartOperationStatus.ProductNotFound };
+        }
+
+        var cart = await cartRepository.GetActiveByUserId(userId);
+        var now = DateTimeOffset.UtcNow;
+
+        if (cart is null)
+        {
+            cart = new CartEntity
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Status = CartStatus.Active,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+
+            await cartRepository.Add(cart);
+        }
+
+        var item = cart.Items.FirstOrDefault(cartItem => cartItem.ProductId == product.Id);
+        var requestedQuantity = (item?.Quantity ?? 0) + request.Quantity;
+
+        if (requestedQuantity > product.StockQuantity)
+        {
+            return new CartOperationResult { Status = CartOperationStatus.InsufficientStock };
+        }
+
+        if (item is null)
+        {
+            item = new CartItem
+            {
+                Id = Guid.NewGuid(),
+                CartId = cart.Id,
+                ProductId = product.Id,
+                Product = product,
+                Quantity = request.Quantity,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+
+            cart.Items.Add(item);
+        }
+        else
+        {
+            item.Quantity = requestedQuantity;
+            item.UpdatedAt = now;
+        }
+
+        cart.UpdatedAt = now;
+        await cartRepository.Save();
+
+        return new CartOperationResult
+        {
+            Status = CartOperationStatus.Success,
+            Cart = CartMapper.Map(cart)
+        };
+    }
+}
