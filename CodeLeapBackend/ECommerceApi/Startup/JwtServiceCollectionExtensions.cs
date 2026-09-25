@@ -1,5 +1,5 @@
 using System.Text;
-using ECommerceApi.Startup.Configurations;
+using Application.Configurations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 

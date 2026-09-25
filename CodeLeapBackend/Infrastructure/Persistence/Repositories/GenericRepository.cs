@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Application.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,11 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     public async Task<T?> GetById(Guid id)
     {
         return await DbSet.FindAsync(id);
+    }
+
+    public async Task<T?> GetBy (Expression<Func<T, bool>> condition) 
+    {
+         return await DbSet.FirstOrDefaultAsync(condition);
     }
 
     public async Task Add(T entity)

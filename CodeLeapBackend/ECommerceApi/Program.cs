@@ -1,5 +1,5 @@
+using Application.Configurations;
 using ECommerceApi.Startup;
-using ECommerceApi.Startup.Configurations;
 using Infrastructure.DependencyInjection;
 using Infrastructure.Persistence;
 

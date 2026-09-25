@@ -1,4 +1,4 @@
-namespace ECommerceApi.Startup.Configurations;
+namespace Application.Configurations;
 
 public sealed class JwtSettings
 {
