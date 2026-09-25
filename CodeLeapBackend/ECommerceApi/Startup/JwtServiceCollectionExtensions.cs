@@ -1,4 +1,5 @@
 using System.Text;
+using ECommerceApi.Startup.Configurations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -6,12 +7,16 @@ namespace ECommerceApi.Startup;
 
 public static class JwtServiceCollectionExtensions
 {
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, EnvSettings envSettings)
     {
-        var jwtSection = configuration.GetSection("Jwt");
-        var issuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer is required.");
-        var audience = jwtSection["Audience"] ?? throw new InvalidOperationException("Jwt:Audience is required.");
-        var key = jwtSection["Key"] ?? throw new InvalidOperationException("Jwt:Key is required.");
+        var jwtSettings = envSettings.Jwt;
+
+        if (string.IsNullOrWhiteSpace(jwtSettings.Issuer) ||
+            string.IsNullOrWhiteSpace(jwtSettings.Audience) ||
+            string.IsNullOrWhiteSpace(jwtSettings.Key))
+        {
+            throw new InvalidOperationException("Jwt Issuer, Audience, and Key are required.");
+        }
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -19,11 +24,11 @@ public static class JwtServiceCollectionExtensions
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
-                    ValidIssuer = issuer,
+                    ValidIssuer = jwtSettings.Issuer,
                     ValidateAudience = true,
-                    ValidAudience = audience,
+                    ValidAudience = jwtSettings.Audience,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };

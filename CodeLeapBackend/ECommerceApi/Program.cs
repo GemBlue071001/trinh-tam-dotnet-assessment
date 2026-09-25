@@ -1,15 +1,19 @@
 using ECommerceApi.Startup;
+using ECommerceApi.Startup.Configurations;
 using Infrastructure.DependencyInjection;
 using Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
+var envSettings = builder.Configuration.Get<EnvSettings>()
+    ?? throw new InvalidOperationException("Environment configuration is required.");
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddSingleton(envSettings);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddJwtAuthentication(envSettings);
 builder.Services.AddSwaggerDocumentation();
 builder.Services.AddOpenApi();
 
