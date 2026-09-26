@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Application.Models.Checkout;
 using Application.Repositories;
 using Application.Services.Checkout;
@@ -17,16 +16,12 @@ public sealed class CheckoutServiceTests
     {
         var userId = Guid.NewGuid();
         var product = CreateProduct(stockQuantity: 5, price: 100m);
-        var cart = CreateCart(userId, product.Id, quantity: 2);
+        var cart = CreateCart(userId, product, quantity: 2);
         var cartRepository = new Mock<ICartRepository>();
         var orderRepository = new Mock<IOrderRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
         var unitOfWork = CreateUnitOfWork();
         Order? createdOrder = null;
         cartRepository.Setup(repository => repository.GetActiveForCheckout(userId)).ReturnsAsync(cart);
-        productRepository
-            .Setup(repository => repository.GetAllBy(It.IsAny<Expression<Func<Product, bool>>>() ))
-            .ReturnsAsync(new List<Product> { product });
         orderRepository.Setup(repository => repository.Add(It.IsAny<Order>()))
             .Callback<Order>(order => createdOrder = order)
             .Returns(Task.CompletedTask);
@@ -34,7 +29,6 @@ public sealed class CheckoutServiceTests
         var service = new CheckoutService(
             cartRepository.Object,
             orderRepository.Object,
-            productRepository.Object,
             unitOfWork.Object);
 
         var result = await service.Checkout(userId);
@@ -49,7 +43,6 @@ public sealed class CheckoutServiceTests
         Assert.NotNull(createdOrder);
         Assert.Single(createdOrder!.Items);
         Assert.Equal(100m, createdOrder.Items.Single().UnitPrice);
-        productRepository.Verify(repository => repository.GetAllBy(It.IsAny<Expression<Func<Product, bool>>>()), Times.Once);
         orderRepository.Verify(repository => repository.Save(), Times.Once);
     }
 
@@ -58,19 +51,14 @@ public sealed class CheckoutServiceTests
     {
         var userId = Guid.NewGuid();
         var product = CreateProduct(stockQuantity: 1, price: 100m);
-        var cart = CreateCart(userId, product.Id, quantity: 2);
+        var cart = CreateCart(userId, product, quantity: 2);
         var cartRepository = new Mock<ICartRepository>();
         var orderRepository = new Mock<IOrderRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
         var unitOfWork = CreateUnitOfWork();
         cartRepository.Setup(repository => repository.GetActiveForCheckout(userId)).ReturnsAsync(cart);
-        productRepository
-            .Setup(repository => repository.GetAllBy(It.IsAny<Expression<Func<Product, bool>>>() ))
-            .ReturnsAsync(new List<Product> { product });
         var service = new CheckoutService(
             cartRepository.Object,
             orderRepository.Object,
-            productRepository.Object,
             unitOfWork.Object);
 
         var result = await service.Checkout(userId);
@@ -105,7 +93,7 @@ public sealed class CheckoutServiceTests
         };
     }
 
-    private static CartEntity CreateCart(Guid userId, Guid productId, int quantity)
+    private static CartEntity CreateCart(Guid userId, Product product, int quantity)
     {
         var cart = new CartEntity
         {
@@ -118,7 +106,8 @@ public sealed class CheckoutServiceTests
         {
             Id = Guid.NewGuid(),
             CartId = cart.Id,
-            ProductId = productId,
+            ProductId = product.Id,
+            Product = product,
             Quantity = quantity
         });
 

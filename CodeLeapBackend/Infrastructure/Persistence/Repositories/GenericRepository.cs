@@ -20,11 +20,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return DbSet.ToListAsync();
     }
 
-    public Task<List<T>> GetAllBy(Expression<Func<T, bool>> condition)
-    {
-        return DbSet.Where(condition).ToListAsync();
-    }
-
     public async Task<T?> GetById(Guid id)
     {
         return await DbSet.FindAsync(id);

@@ -20,6 +20,7 @@ public sealed class CartRepository(ECommerceDbContext dbContext)
     {
         return DbSet
             .Include(cart => cart.Items)
+            .ThenInclude(item => item.Product)
             .FirstOrDefaultAsync(cart => cart.UserId == userId && cart.Status == CartStatus.Active);
     }
 }

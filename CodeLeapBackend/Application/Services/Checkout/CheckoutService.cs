@@ -8,7 +8,6 @@ namespace Application.Services.Checkout;
 public sealed class CheckoutService(
     ICartRepository cartRepository,
     IOrderRepository orderRepository,
-    IGenericRepository<Product> productRepository,
     IUnitOfWork unitOfWork) : ICheckoutService
 {
     public Task<CheckoutResult> Checkout(Guid userId)
@@ -28,19 +27,11 @@ public sealed class CheckoutService(
 
             var now = DateTimeOffset.UtcNow;
             var orderItems = new List<OrderItem>();
-            var productIds = cart.Items
-                .Select(item => item.ProductId)
-                .Distinct()
-                .ToList();
-
-            var products = await productRepository.GetAllBy(product =>
-                productIds.Contains(product.Id) && !product.IsDeleted);
-                
-            var productsById = products.ToDictionary(product => product.Id);
 
             foreach (var cartItem in cart.Items)
             {
-                if (!productsById.TryGetValue(cartItem.ProductId, out var product))
+                var product = cartItem.Product;
+                if (product is null || product.IsDeleted)
                 {
                     return new CheckoutResult { Status = CheckoutStatus.ProductNotFound };
                 }
