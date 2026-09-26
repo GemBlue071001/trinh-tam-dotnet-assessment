@@ -65,6 +65,37 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("auth_sessions", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.RevokedAccessToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("JwtId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("jwt_id");
+
+                    b.Property<DateTimeOffset>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_revoked_access_tokens_expires_at");
+
+                    b.HasIndex("JwtId")
+                        .IsUnique();
+
+                    b.ToTable("revoked_access_tokens", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Cart", b =>
                 {
                     b.Property<Guid>("Id")

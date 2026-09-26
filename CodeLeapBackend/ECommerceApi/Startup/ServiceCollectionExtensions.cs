@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRevokedAccessTokenRepository, RevokedAccessTokenRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped<ICartItemRepository, CartItemRepository>();

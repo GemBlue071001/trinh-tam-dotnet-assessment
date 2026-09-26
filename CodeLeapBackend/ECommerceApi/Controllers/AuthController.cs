@@ -1,6 +1,10 @@
 using Application.Models.Auth;
 using Application.Services.Auth;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ECommerceApi.Controllers;
 
@@ -35,5 +39,40 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         }
 
         return Ok(response);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    [ProducesResponseType<CurrentUserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var response = await authService.GetCurrentUser(userId);
+        return response is null ? Unauthorized() : Ok(response);
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Logout()
+    {
+        var jwtId = User.FindFirstValue(JwtRegisteredClaimNames.Jti);
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+
+        if (string.IsNullOrWhiteSpace(jwtId) || string.IsNullOrWhiteSpace(accessToken))
+        {
+            return Unauthorized();
+        }
+
+        var expiresAt = new JwtSecurityTokenHandler().ReadJwtToken(accessToken).ValidTo;
+        await authService.Logout(jwtId, new DateTimeOffset(expiresAt));
+
+        return NoContent();
     }
 }

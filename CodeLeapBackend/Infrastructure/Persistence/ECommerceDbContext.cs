@@ -13,6 +13,7 @@ public sealed class ECommerceDbContext(DbContextOptions<ECommerceDbContext> opti
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<AuthSession> AuthSessions => Set<AuthSession>();
+    public DbSet<RevokedAccessToken> RevokedAccessTokens => Set<RevokedAccessToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,5 +25,6 @@ public sealed class ECommerceDbContext(DbContextOptions<ECommerceDbContext> opti
         modelBuilder.ApplyConfiguration(new OrderConfiguration());
         modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
         modelBuilder.ApplyConfiguration(new AuthSessionConfiguration());
+        modelBuilder.ApplyConfiguration(new RevokedAccessTokenConfiguration());
     }
 }

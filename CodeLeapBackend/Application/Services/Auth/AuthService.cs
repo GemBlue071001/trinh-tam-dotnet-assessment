@@ -14,6 +14,7 @@ namespace Application.Services.Auth;
 
 public sealed class AuthService(
     IUserRepository userRepository,
+    IRevokedAccessTokenRepository revokedAccessTokenRepository,
     ILogger<AuthService> logger,
     EnvSettings envSettings) : IAuthService
 {
@@ -74,6 +75,44 @@ public sealed class AuthService(
         };
     }
 
+    public async Task<CurrentUserResponse?> GetCurrentUser(Guid userId)
+    {
+        var user = await userRepository.GetById(userId);
+
+        if (user is null || !user.IsActive)
+        {
+            return null;
+        }
+
+        return new CurrentUserResponse
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Role = user.Role.ToString(),
+            FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber,
+            Address = user.Address
+        };
+    }
+
+    public async Task Logout(string jwtId, DateTimeOffset expiresAt)
+    {
+        var existingToken = await revokedAccessTokenRepository.GetBy(token => token.JwtId == jwtId);
+        if (existingToken is not null)
+        {
+            return;
+        }
+
+        await revokedAccessTokenRepository.Add(new RevokedAccessToken
+        {
+            Id = Guid.NewGuid(),
+            JwtId = jwtId,
+            ExpiresAt = expiresAt,
+            RevokedAt = DateTimeOffset.UtcNow
+        });
+        await revokedAccessTokenRepository.Save();
+    }
+
     private string GenerateJwtToken(User user)
     {
         var jwtSettings = envSettings.Jwt;
@@ -85,7 +124,8 @@ public sealed class AuthService(
             [
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             ],
             expires: DateTime.UtcNow.AddMinutes(jwtSettings.AccessTokenExpirationMinutes),
             signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256));
