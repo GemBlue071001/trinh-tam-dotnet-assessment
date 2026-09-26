@@ -9,7 +9,7 @@ An e-commerce application composed of an ASP.NET Core Web API, PostgreSQL, and a
 - JWT Bearer authentication, role-based authorization, and BCrypt
 - Swagger / OpenAPI
 - Docker Compose
-- xUnit + Moq
+- xUnit + Moq + Testcontainers for integration tests
 - React + TypeScript + Vite (UI prototype; not connected to the API yet)
 
 ## Project Structure
@@ -22,6 +22,7 @@ An e-commerce application composed of an ASP.NET Core Web API, PostgreSQL, and a
 │   ├── Infrastructure/          # EF Core DbContext, repository implementations, migrations, seed data
 │   ├── ECommerceApi/            # Controllers, startup configuration, middleware, Dockerfile
 │   ├── Application.UnitTests/   # Application service unit tests
+│   ├── ECommerceApi.IntegrationTests/ # API integration tests with PostgreSQL Testcontainers
 │   ├── scripts/                 # EF migration scripts for Git Bash
 │   └── CodeLeapBackend.slnx
 ├── CodeLeapFrontend/            # React/Vite UI prototype
@@ -162,6 +163,13 @@ dotnet test .\Application.UnitTests\Application.UnitTests.csproj
 ```
 
 There are currently 33 unit tests for Auth, Product, Cart, and Checkout services. They cover happy paths, validation/failure cases, insufficient stock, missing resources, JWT claims, token revocation, and retrying after a concurrency conflict.
+
+Two API integration tests use a short-lived PostgreSQL Testcontainer, so Docker must be running:
+
+```powershell
+cd .\CodeLeapBackend
+dotnet test .\ECommerceApi.IntegrationTests\ECommerceApi.IntegrationTests.csproj
+```
 
 
 ## Not Implemented Yet / Future Improvements
