@@ -17,7 +17,12 @@ public sealed class CartController(ICartService cartService, ICheckoutService ch
     [ProducesResponseType<CartResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<CartResponse>> GetCart()
     {
-        return Ok(await cartService.GetCart(GetUserId()));
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await cartService.GetCart(userId));
     }
 
     [HttpPost("items")]
@@ -26,7 +31,12 @@ public sealed class CartController(ICartService cartService, ICheckoutService ch
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AddItem(AddCartItemRequest request)
     {
-        var result = await cartService.AddItem(GetUserId(), request);
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await cartService.AddItem(userId, request);
         return ToActionResult(result);
     }
 
@@ -36,7 +46,12 @@ public sealed class CartController(ICartService cartService, ICheckoutService ch
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateItem(Guid productId, UpdateCartItemRequest request)
     {
-        var result = await cartService.UpdateItem(GetUserId(), productId, request);
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await cartService.UpdateItem(userId, productId, request);
         return ToActionResult(result);
     }
 
@@ -45,7 +60,12 @@ public sealed class CartController(ICartService cartService, ICheckoutService ch
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveItem(Guid productId)
     {
-        var result = await cartService.RemoveItem(GetUserId(), productId);
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await cartService.RemoveItem(userId, productId);
         return ToActionResult(result);
     }
 
@@ -56,14 +76,18 @@ public sealed class CartController(ICartService cartService, ICheckoutService ch
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Checkout()
     {
-        var result = await checkoutService.Checkout(GetUserId());
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await checkoutService.Checkout(userId);
         return ToCheckoutActionResult(result);
     }
 
-    private Guid GetUserId()
+    private bool TryGetUserId(out Guid userId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.Parse(userId!);
+        return Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
     }
 
     private IActionResult ToActionResult(CartOperationResult result)
