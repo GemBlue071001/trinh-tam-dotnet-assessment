@@ -86,8 +86,8 @@ public sealed class CartService(
     public async Task<CartOperationResult> UpdateItem(Guid userId, Guid productId, UpdateCartItemRequest request)
     {
         var cart = await cartRepository.GetActiveByUserId(userId);
-        var item = cart?.Items.FirstOrDefault(cartItem => cartItem.ProductId == productId);
-        if (item is null)
+        var cartItem = cart?.Items.FirstOrDefault(cartItem => cartItem.ProductId == productId);
+        if (cartItem is null)
         {
             return new CartOperationResult { Status = CartOperationStatus.CartItemNotFound };
         }
@@ -105,8 +105,8 @@ public sealed class CartService(
         }
 
         var now = DateTimeOffset.UtcNow;
-        item.Quantity = request.Quantity;
-        item.UpdatedAt = now;
+        cartItem.Quantity = request.Quantity;
+        cartItem.UpdatedAt = now;
         cart!.UpdatedAt = now;
         await cartRepository.Save();
 
