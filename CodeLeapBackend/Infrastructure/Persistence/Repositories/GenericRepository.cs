@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Application.Exceptions;
 using Application.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -47,6 +48,14 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
     public async Task<int> Save()
     {
-        return await DbContext.SaveChangesAsync();
+        try
+        {
+            return await DbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            DbContext.ChangeTracker.Clear();
+            throw new ConcurrencyConflictException();
+        }
     }
 }

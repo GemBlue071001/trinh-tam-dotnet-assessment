@@ -6,5 +6,6 @@ public enum CheckoutStatus
     CartNotFound,
     CartEmpty,
     ProductNotFound,
-    InsufficientStock
+    InsufficientStock,
+    ConcurrencyConflict
 }

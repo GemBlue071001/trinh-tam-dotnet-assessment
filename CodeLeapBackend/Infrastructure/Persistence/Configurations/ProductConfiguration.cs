@@ -23,6 +23,7 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(x => x.ImageUrl).HasColumnName("image_url");
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false).IsRequired();
         builder.Property(x => x.DeletedAt).HasColumnName("deleted_at");
+        builder.Property(x => x.Version).IsRowVersion();
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").IsRequired();
         builder.Property(x => x.UpdatedAt).HasColumnName("updated_at").IsRequired();
         builder.HasIndex(x => new { x.Category, x.IsDeleted }).HasDatabaseName("ix_products_category_active");

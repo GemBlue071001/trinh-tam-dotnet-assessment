@@ -1,3 +1,4 @@
+using Application.Exceptions;
 using Application.Models.Checkout;
 using Application.Repositories;
 using Application.Services.Checkout;
@@ -19,7 +20,6 @@ public sealed class CheckoutServiceTests
         var cart = CreateCart(userId, product, quantity: 2);
         var cartRepository = new Mock<ICartRepository>();
         var orderRepository = new Mock<IOrderRepository>();
-        var unitOfWork = CreateUnitOfWork();
         Order? createdOrder = null;
         cartRepository.Setup(repository => repository.GetActiveForCheckout(userId)).ReturnsAsync(cart);
         orderRepository.Setup(repository => repository.Add(It.IsAny<Order>()))
@@ -28,8 +28,7 @@ public sealed class CheckoutServiceTests
         orderRepository.Setup(repository => repository.Save()).ReturnsAsync(1);
         var service = new CheckoutService(
             cartRepository.Object,
-            orderRepository.Object,
-            unitOfWork.Object);
+            orderRepository.Object);
 
         var result = await service.Checkout(userId);
 
@@ -54,12 +53,10 @@ public sealed class CheckoutServiceTests
         var cart = CreateCart(userId, product, quantity: 2);
         var cartRepository = new Mock<ICartRepository>();
         var orderRepository = new Mock<IOrderRepository>();
-        var unitOfWork = CreateUnitOfWork();
         cartRepository.Setup(repository => repository.GetActiveForCheckout(userId)).ReturnsAsync(cart);
         var service = new CheckoutService(
             cartRepository.Object,
-            orderRepository.Object,
-            unitOfWork.Object);
+            orderRepository.Object);
 
         var result = await service.Checkout(userId);
 
@@ -71,14 +68,35 @@ public sealed class CheckoutServiceTests
         orderRepository.Verify(repository => repository.Save(), Times.Never);
     }
 
-    private static Mock<IUnitOfWork> CreateUnitOfWork()
+    [Fact]
+    public async Task Checkout_WhenFirstSaveHasConcurrencyConflict_RetriesWithFreshData()
     {
-        var unitOfWork = new Mock<IUnitOfWork>();
-        unitOfWork
-            .Setup(repository => repository.ExecuteInTransaction(It.IsAny<Func<Task<CheckoutResult>>>() ))
-            .Returns((Func<Task<CheckoutResult>> action) => action());
+        var userId = Guid.NewGuid();
+        var firstProduct = CreateProduct(stockQuantity: 5, price: 100m);
+        var retriedProduct = CreateProduct(stockQuantity: 5, price: 100m);
+        retriedProduct.Id = firstProduct.Id;
+        var firstCart = CreateCart(userId, firstProduct, quantity: 2);
+        var retriedCart = CreateCart(userId, retriedProduct, quantity: 2);
+        retriedCart.Id = firstCart.Id;
+        retriedCart.Items.Single().CartId = retriedCart.Id;
+        var cartRepository = new Mock<ICartRepository>();
+        var orderRepository = new Mock<IOrderRepository>();
+        cartRepository.SetupSequence(repository => repository.GetActiveForCheckout(userId))
+            .ReturnsAsync(firstCart)
+            .ReturnsAsync(retriedCart);
+        orderRepository.Setup(repository => repository.Add(It.IsAny<Order>())).Returns(Task.CompletedTask);
+        orderRepository.SetupSequence(repository => repository.Save())
+            .ThrowsAsync(new ConcurrencyConflictException())
+            .ReturnsAsync(1);
+        var service = new CheckoutService(cartRepository.Object, orderRepository.Object);
 
-        return unitOfWork;
+        var result = await service.Checkout(userId);
+
+        Assert.Equal(CheckoutStatus.Success, result.Status);
+        Assert.Equal(3, retriedProduct.StockQuantity);
+        Assert.Equal(CartStatus.CheckedOut, retriedCart.Status);
+        cartRepository.Verify(repository => repository.GetActiveForCheckout(userId), Times.Exactly(2));
+        orderRepository.Verify(repository => repository.Save(), Times.Exactly(2));
     }
 
     private static Product CreateProduct(int stockQuantity, decimal price)

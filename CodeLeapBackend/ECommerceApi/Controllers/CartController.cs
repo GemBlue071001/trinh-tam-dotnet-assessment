@@ -53,6 +53,7 @@ public sealed class CartController(ICartService cartService, ICheckoutService ch
     [ProducesResponseType<CheckoutResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Checkout()
     {
         var result = await checkoutService.Checkout(GetUserId());
@@ -86,6 +87,7 @@ public sealed class CartController(ICartService cartService, ICheckoutService ch
             CheckoutStatus.CartEmpty => BadRequest(new { message = "Cart is empty." }),
             CheckoutStatus.ProductNotFound => NotFound(new { message = "A product in the cart was not found." }),
             CheckoutStatus.InsufficientStock => BadRequest(new { message = "A product in the cart no longer has enough stock." }),
+            CheckoutStatus.ConcurrencyConflict => Conflict(new { message = "Checkout conflicted with another request. Please try again." }),
             _ => BadRequest()
         };
     }
