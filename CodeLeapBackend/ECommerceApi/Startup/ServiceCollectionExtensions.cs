@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGenericRepository<Product>, GenericRepository<Product>>();
         services.AddScoped<ICartRepository, CartRepository>();
+        services.AddScoped<ICartItemRepository, CartItemRepository>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICartService, CartService>();
 

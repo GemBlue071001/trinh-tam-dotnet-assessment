@@ -9,6 +9,7 @@ namespace Application.Services.Cart;
 
 public sealed class CartService(
     ICartRepository cartRepository,
+    ICartItemRepository cartItemRepository,
     IGenericRepository<Product> productRepository) : ICartService
 {
     public async Task<CartResponse> GetCart(Guid userId)
@@ -73,6 +74,61 @@ public sealed class CartService(
         }
 
         cart.UpdatedAt = now;
+        await cartRepository.Save();
+
+        return new CartOperationResult
+        {
+            Status = CartOperationStatus.Success,
+            Cart = CartMapper.Map(cart)
+        };
+    }
+
+    public async Task<CartOperationResult> UpdateItem(Guid userId, Guid productId, UpdateCartItemRequest request)
+    {
+        var cart = await cartRepository.GetActiveByUserId(userId);
+        var item = cart?.Items.FirstOrDefault(cartItem => cartItem.ProductId == productId);
+        if (item is null)
+        {
+            return new CartOperationResult { Status = CartOperationStatus.CartItemNotFound };
+        }
+
+        var product = await productRepository.GetBy(product =>
+            product.Id == productId && !product.IsDeleted);
+        if (product is null)
+        {
+            return new CartOperationResult { Status = CartOperationStatus.ProductNotFound };
+        }
+
+        if (request.Quantity > product.StockQuantity)
+        {
+            return new CartOperationResult { Status = CartOperationStatus.InsufficientStock };
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        item.Quantity = request.Quantity;
+        item.UpdatedAt = now;
+        cart!.UpdatedAt = now;
+        await cartRepository.Save();
+
+        return new CartOperationResult
+        {
+            Status = CartOperationStatus.Success,
+            Cart = CartMapper.Map(cart)
+        };
+    }
+
+    public async Task<CartOperationResult> RemoveItem(Guid userId, Guid productId)
+    {
+        var cart = await cartRepository.GetActiveByUserId(userId);
+        var item = cart?.Items.FirstOrDefault(cartItem => cartItem.ProductId == productId);
+        if (item is null)
+        {
+            return new CartOperationResult { Status = CartOperationStatus.CartItemNotFound };
+        }
+
+        await cartItemRepository.Delete(item);
+        cart!.Items.Remove(item);
+        cart.UpdatedAt = DateTimeOffset.UtcNow;
         await cartRepository.Save();
 
         return new CartOperationResult

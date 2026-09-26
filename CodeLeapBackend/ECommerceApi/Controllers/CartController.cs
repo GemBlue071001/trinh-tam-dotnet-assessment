@@ -28,6 +28,25 @@ public sealed class CartController(ICartService cartService) : ControllerBase
         return ToActionResult(result);
     }
 
+    [HttpPut("items/{productId:guid}")]
+    [ProducesResponseType<CartResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateItem(Guid productId, UpdateCartItemRequest request)
+    {
+        var result = await cartService.UpdateItem(GetUserId(), productId, request);
+        return ToActionResult(result);
+    }
+
+    [HttpDelete("items/{productId:guid}")]
+    [ProducesResponseType<CartResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveItem(Guid productId)
+    {
+        var result = await cartService.RemoveItem(GetUserId(), productId);
+        return ToActionResult(result);
+    }
+
     private Guid GetUserId()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -41,6 +60,7 @@ public sealed class CartController(ICartService cartService) : ControllerBase
             CartOperationStatus.Success => Ok(result.Cart),
             CartOperationStatus.InsufficientStock => BadRequest(new { message = "Requested quantity exceeds available stock." }),
             CartOperationStatus.ProductNotFound => NotFound(new { message = "Product was not found." }),
+            CartOperationStatus.CartItemNotFound => NotFound(new { message = "Cart item was not found." }),
             _ => BadRequest()
         };
     }
