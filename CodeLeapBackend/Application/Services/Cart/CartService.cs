@@ -45,13 +45,6 @@ public sealed class CartService(
         }
 
         var item = cart.Items.FirstOrDefault(cartItem => cartItem.ProductId == product.Id);
-        var requestedQuantity = (item?.Quantity ?? 0) + request.Quantity;
-
-        if (requestedQuantity > product.StockQuantity)
-        {
-            return new CartOperationResult { Status = CartOperationStatus.InsufficientStock };
-        }
-
         if (item is null)
         {
             item = new CartItem
@@ -60,19 +53,21 @@ public sealed class CartService(
                 CartId = cart.Id,
                 ProductId = product.Id,
                 Product = product,
-                Quantity = request.Quantity,
                 CreatedAt = now,
                 UpdatedAt = now
             };
 
             cart.Items.Add(item);
         }
-        else
+
+        var requestedQuantity = item.Quantity + request.Quantity;
+        if (requestedQuantity > product.StockQuantity)
         {
-            item.Quantity = requestedQuantity;
-            item.UpdatedAt = now;
+            return new CartOperationResult { Status = CartOperationStatus.InsufficientStock };
         }
 
+        item.Quantity = requestedQuantity;
+        item.UpdatedAt = now;
         cart.UpdatedAt = now;
         await cartRepository.Save();
 
