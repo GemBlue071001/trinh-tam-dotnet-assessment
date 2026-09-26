@@ -2,6 +2,7 @@ using Application.Repositories;
 using Application.Services.Auth;
 using Application.Services.Cart;
 using Application.Services.Checkout;
+using Application.Services.Product;
 using Domain.Entities;
 using Infrastructure.Persistence.Repositories;
 
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<ICheckoutService, CheckoutService>();
+        services.AddScoped<IProductService, ProductService>();
 
         return services;
     }

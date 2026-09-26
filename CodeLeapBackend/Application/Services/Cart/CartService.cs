@@ -4,13 +4,14 @@ using Application.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using CartEntity = Domain.Entities.Cart;
+using ProductEntity = Domain.Entities.Product;
 
 namespace Application.Services.Cart;
 
 public sealed class CartService(
     ICartRepository cartRepository,
     ICartItemRepository cartItemRepository,
-    IGenericRepository<Product> productRepository) : ICartService
+    IGenericRepository<ProductEntity> productRepository) : ICartService
 {
     public async Task<CartResponse> GetCart(Guid userId)
     {
