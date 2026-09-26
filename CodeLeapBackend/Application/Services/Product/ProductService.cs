@@ -4,7 +4,8 @@ using Domain.Entities;
 
 namespace Application.Services.Product;
 
-public sealed class ProductService(IGenericRepository<Domain.Entities.Product> productRepository) : IProductService
+public sealed class ProductService(
+    IProductRepository productRepository) : IProductService
 {
     public async Task<ProductResponse> Create(CreateProductRequest request)
     {
@@ -33,6 +34,19 @@ public sealed class ProductService(IGenericRepository<Domain.Entities.Product> p
     {
         var product = await GetActiveProduct(productId);
         return product is null ? null : Map(product);
+    }
+
+    public async Task<PagedProductResponse> Search(SearchProductsRequest request)
+    {
+        var (products, totalCount) = await productRepository.Search(request);
+
+        return new PagedProductResponse
+        {
+            Items = products.Select(Map).ToList(),
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<ProductResponse?> Update(Guid productId, UpdateProductRequest request)

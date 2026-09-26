@@ -1,4 +1,5 @@
 using Application.Configurations;
+using ECommerceApi.ExceptionHandling;
 using ECommerceApi.Startup;
 using Infrastructure.DependencyInjection;
 using Infrastructure.Persistence;
@@ -10,6 +11,8 @@ var envSettings = builder.Configuration.Get<EnvSettings>()
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddSingleton(envSettings);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -20,6 +23,8 @@ builder.Services.AddOpenApi();
 var app = builder.Build();
 
 await ECommerceDbInitializer.InitializeAsync(app.Services);
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

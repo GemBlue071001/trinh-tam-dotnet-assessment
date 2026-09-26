@@ -17,5 +17,25 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build:
+      context: .
+      dockerfile: CodeLeapBackend/ECommerceApi/Dockerfile
+    container_name: codeleap-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=codeleap_ecommerce;Username=postgres;Password=postgres
+      Jwt__Issuer: CodeLeap.ECommerce
+      Jwt__Audience: CodeLeap.ECommerce.Client
+      Jwt__Key: development-only-jwt-signing-key-change-before-production-2026
+      Jwt__AccessTokenExpirationMinutes: 60
+    ports:
+      - "8080:8080"
+
 volumes:
   postgres_data:

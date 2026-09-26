@@ -19,7 +19,7 @@ public sealed class CartServiceTests
         var cart = CreateCart(userId, product, quantity: 2);
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId)).ReturnsAsync(cart);
         var service = new CartService(cartRepository.Object, cartItemRepository.Object, productRepository.Object);
 
@@ -37,7 +37,7 @@ public sealed class CartServiceTests
         var userId = Guid.NewGuid();
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId))
             .ReturnsAsync((Domain.Entities.Cart?)null);
         var service = new CartService(cartRepository.Object, cartItemRepository.Object, productRepository.Object);
@@ -56,7 +56,7 @@ public sealed class CartServiceTests
         var product = CreateProduct(stockQuantity: 5, price: 100m);
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId))
             .ReturnsAsync((Domain.Entities.Cart?)null);
         cartRepository.Setup(repository => repository.Add(It.IsAny<Domain.Entities.Cart>()))
@@ -89,7 +89,7 @@ public sealed class CartServiceTests
         var userId = Guid.NewGuid();
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         productRepository
             .Setup(repository => repository.GetBy(It.IsAny<Expression<Func<Product, bool>>>() ))
             .ReturnsAsync((Product?)null);
@@ -114,7 +114,7 @@ public sealed class CartServiceTests
         var cart = CreateCart(userId, product, quantity: 4);
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId)).ReturnsAsync(cart);
         productRepository
             .Setup(repository => repository.GetBy(It.IsAny<Expression<Func<Product, bool>>>() ))
@@ -140,7 +140,7 @@ public sealed class CartServiceTests
         var cart = CreateCart(userId, product, quantity: 1);
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId)).ReturnsAsync(cart);
         cartRepository.Setup(repository => repository.Save()).ReturnsAsync(1);
         productRepository
@@ -163,7 +163,7 @@ public sealed class CartServiceTests
         var userId = Guid.NewGuid();
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId))
             .ReturnsAsync((Domain.Entities.Cart?)null);
         var service = new CartService(cartRepository.Object, cartItemRepository.Object, productRepository.Object);
@@ -183,7 +183,7 @@ public sealed class CartServiceTests
         var cart = CreateCart(userId, product, quantity: 1);
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId)).ReturnsAsync(cart);
         productRepository
             .Setup(repository => repository.GetBy(It.IsAny<Expression<Func<Product, bool>>>() ))
@@ -205,7 +205,7 @@ public sealed class CartServiceTests
         var cart = CreateCart(userId, product, quantity: 1);
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId)).ReturnsAsync(cart);
         productRepository
             .Setup(repository => repository.GetBy(It.IsAny<Expression<Func<Product, bool>>>() ))
@@ -227,7 +227,7 @@ public sealed class CartServiceTests
         var cart = CreateCart(userId, product, quantity: 1);
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId)).ReturnsAsync(cart);
         cartRepository.Setup(repository => repository.Save()).ReturnsAsync(1);
         var service = new CartService(cartRepository.Object, cartItemRepository.Object, productRepository.Object);
@@ -248,7 +248,7 @@ public sealed class CartServiceTests
         var userId = Guid.NewGuid();
         var cartRepository = new Mock<ICartRepository>();
         var cartItemRepository = new Mock<ICartItemRepository>();
-        var productRepository = new Mock<IGenericRepository<Product>>();
+        var productRepository = new Mock<IProductRepository>();
         cartRepository.Setup(repository => repository.GetActiveByUserId(userId))
             .ReturnsAsync((Domain.Entities.Cart?)null);
         var service = new CartService(cartRepository.Object, cartItemRepository.Object, productRepository.Object);

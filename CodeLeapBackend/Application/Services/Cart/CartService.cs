@@ -11,7 +11,7 @@ namespace Application.Services.Cart;
 public sealed class CartService(
     ICartRepository cartRepository,
     ICartItemRepository cartItemRepository,
-    IGenericRepository<ProductEntity> productRepository) : ICartService
+    IProductRepository productRepository) : ICartService
 {
     public async Task<CartResponse> GetCart(Guid userId)
     {
