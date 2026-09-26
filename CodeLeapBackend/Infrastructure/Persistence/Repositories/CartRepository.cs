@@ -15,4 +15,11 @@ public sealed class CartRepository(ECommerceDbContext dbContext)
             .ThenInclude(item => item.Product)
             .FirstOrDefaultAsync(cart => cart.UserId == userId && cart.Status == CartStatus.Active);
     }
+
+    public Task<Cart?> GetActiveForCheckout(Guid userId)
+    {
+        return DbSet
+            .Include(cart => cart.Items)
+            .FirstOrDefaultAsync(cart => cart.UserId == userId && cart.Status == CartStatus.Active);
+    }
 }
